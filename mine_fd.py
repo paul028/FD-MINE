@@ -33,7 +33,6 @@ def sample(joint=True,
     xy = np.concatenate([x, y], axis=1)
     return xy
 
-
 def compute_mi(cov_xy=0.9, n_bins=100):
     cov=[[1, cov_xy], [cov_xy, 1]]
     data = sample(cov=cov)
