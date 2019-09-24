@@ -130,6 +130,10 @@ def train_mine(cov_xy=0.9, mine_model=2, device='cpu'):
     sns.set()
     sns.scatterplot(x=x, y=-y)
     plt.show()
+    plt.xlabel('Epoch')
+    plt.ylabel('Predicted MI')
+    plt.title('Computed MI with COV=%f' % (args.cov_xy))
+    plt.show()
 
 
 if __name__ == '__main__':
