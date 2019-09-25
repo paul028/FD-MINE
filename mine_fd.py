@@ -50,29 +50,12 @@ class Mine1(nn.Module):
         super(Mine1, self).__init__()
         self.fc1 = nn.Linear(1, hidden_units)
         self.fc2 = nn.Linear(1, hidden_units)
-        self.fc2 = nn.Linear(1, hidden_units)
         self.fc3 = nn.Linear(hidden_units, 1)
 
     def forward(self, x, y):
         x = F.relu(self.fc1(x) + self.fc2(y))
         x = self.fc3(x)
         return x
-
-
-class Mine2(nn.Module):
-    def __init__(self, input_size=2, hidden_units=10):
-        super(Mine2, self).__init__()
-        self.fc1 = nn.Linear(input_size, hidden_units)
-        self.fc2 = nn.Linear(hidden_units, hidden_units)
-        self.fc2 = nn.Linear(hidden_units, hidden_units)		
-        self.fc3 = nn.Linear(hidden_units, 1)
-
-    def forward(self, x):
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-        return x
-
 
 def train_mine(cov_xy=0.9, device='cpu'):
     model = Mine1().to(device)
@@ -100,12 +83,13 @@ def train_mine(cov_xy=0.9, device='cpu'):
         y2 = y2.type(torch.FloatTensor)
 
         pred_xy = model(x1, y1)
-        pred_x_y[epoch] = model(x2, y2)
-
-        if epoch==0:
-            ret = torch.mean(pred_xy) - torch.log(torch.mean(torch.exp(pred_x_y[epoch])))
-        else:
-            ret = torch.mean(pred_xy) - torch.log(torch.mean(torch.exp(pred_x_y[epoch-1])))	
+        #pred_x_y[epoch] = model(x2, y2)
+        pred_x_y = model(x2, y2)
+        ret= 1+torch.mean(pred_xy) - torch.mean(torch.exp(pred_x_y))
+        #if epoch==0:
+        #    ret = torch.mean(pred_xy) - torch.log(torch.mean(torch.exp(pred_x_y[epoch])))
+        #else:
+        #    ret = torch.mean(pred_xy) - torch.log(torch.mean(torch.exp(pred_x_y[epoch-1])))	
 			
         loss = -ret #maximize
         plot_loss.append(loss.data.numpy())
@@ -119,7 +103,7 @@ def train_mine(cov_xy=0.9, device='cpu'):
     sns.scatterplot(x=x, y=-y)
     plt.xlabel('Epoch')
     plt.ylabel('Predicted MI')
-    plt.title('Computed MI=%f with COV=%f' % (compute_mi(cov_xy=args.cov_xy),args.cov_xy))
+    plt.title('Computed MI=%f with COV=%f' % (compute_mi(cov_xy=args.covariance),args.covariance))
     plt.show()
 
 
@@ -135,10 +119,10 @@ if __name__ == '__main__':
                         help='disables GPU training')
 						
     args = parser.parse_args()
-    use_cuda = not args.no_cuda and torch.cuda.is_available()
+    use_cuda = not args.no_gpu and torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
 	
     print("Device: ", device)
-    print("Covariace off diagonal:", args.cov_xy)
-    compute_mi(cov_xy=args.cov_xy)
-    train_mine(cov_xy=args.cov_xy,device=device)
+    print("Covariace off diagonal:", args.covariance)
+    compute_mi(cov_xy=args.covariance)
+    train_mine(cov_xy=args.covariance,device=device)
