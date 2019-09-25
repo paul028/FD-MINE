@@ -54,6 +54,7 @@ class Mine1(nn.Module):
         super(Mine1, self).__init__()
         self.fc1 = nn.Linear(1, hidden_units)
         self.fc2 = nn.Linear(1, hidden_units)
+        self.fc2 = nn.Linear(1, hidden_units)
         self.fc3 = nn.Linear(hidden_units, 1)
 
     def forward(self, x, y):
@@ -67,6 +68,7 @@ class Mine2(nn.Module):
         super(Mine2, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_units)
         self.fc2 = nn.Linear(hidden_units, hidden_units)
+        self.fc2 = nn.Linear(hidden_units, hidden_units)		
         self.fc3 = nn.Linear(hidden_units, 1)
 
     def forward(self, x):
