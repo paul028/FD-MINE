@@ -1,19 +1,15 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 from tqdm import tqdm
 from scipy.stats.contingency import margins
-
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import argparse
-
 
 def sample(joint=True,
            mean=[0, 0],
@@ -78,11 +74,8 @@ class Mine2(nn.Module):
         return x
 
 
-def train_mine(cov_xy=0.9, mine_model=2, device='cpu'):
-    if mine_model==2:
-        model = Mine2().to(device)
-    else:
-        model = Mine1().to(device)
+def train_mine(cov_xy=0.9, device='cpu'):
+    model = Mine1().to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
     plot_loss = []
     n_samples = 10000
@@ -105,15 +98,9 @@ def train_mine(cov_xy=0.9, mine_model=2, device='cpu'):
         y1 = y1.type(torch.FloatTensor)
         x2 = x2.type(torch.FloatTensor)
         y2 = y2.type(torch.FloatTensor)
-    
-        if mine_model==2:
-            xy = torch.cat((x1, y1), 1)
-            pred_xy = model(xy)
-            xy = torch.cat((x2, y2), 1)
-            pred_x_y[epoch] = model(xy)
-        else:
-            pred_xy = model(x1, y1)
-            pred_x_y[epoch] = model(x2, y2)
+
+        pred_xy = model(x1, y1)
+        pred_x_y[epoch] = model(x2, y2)
 
         if epoch==0:
             ret = torch.mean(pred_xy) - torch.log(torch.mean(torch.exp(pred_x_y[epoch])))
@@ -138,25 +125,20 @@ def train_mine(cov_xy=0.9, mine_model=2, device='cpu'):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='MI on 2D Gaussian')
-    parser.add_argument('--cov_xy',
+    parser.add_argument('--covariance',
                         type=float,
-                        default=0.5,
+                        default=0.9,
                         help='gaussian off diagonal element')
-    parser.add_argument('--mine_model',
-                        type=int,
-                        default=1,
-                        help='gaussian off diagonal element')
-    parser.add_argument('--no-cuda',
+    parser.add_argument('--no-gpu',
                         action='store_true',
                         default=False,
-                        help='disables CUDA training')
+                        help='disables GPU training')
+						
     args = parser.parse_args()
     use_cuda = not args.no_cuda and torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
+	
     print("Device: ", device)
     print("Covariace off diagonal:", args.cov_xy)
-    print("Mine model ver:", args.mine_model)
     compute_mi(cov_xy=args.cov_xy)
-    train_mine(cov_xy=args.cov_xy,
-               mine_model=args.mine_model,
-               device=device)
+    train_mine(cov_xy=args.cov_xy,device=device)
