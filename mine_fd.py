@@ -83,14 +83,10 @@ def train_mine(cov_xy=0.9, device='cpu'):
         y2 = y2.type(torch.FloatTensor)
 
         pred_xy = model(x1, y1)
-        #pred_x_y[epoch] = model(x2, y2)
+		
         pred_x_y = model(x2, y2)
         ret= 1+torch.mean(pred_xy) - torch.mean(torch.exp(pred_x_y))
-        #if epoch==0:
-        #    ret = torch.mean(pred_xy) - torch.log(torch.mean(torch.exp(pred_x_y[epoch])))
-        #else:
-        #    ret = torch.mean(pred_xy) - torch.log(torch.mean(torch.exp(pred_x_y[epoch-1])))	
-			
+	
         loss = -ret #maximize
         plot_loss.append(loss.data.numpy())
         optimizer.zero_grad()
